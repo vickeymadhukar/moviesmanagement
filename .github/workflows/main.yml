@@ -1,0 +1,44 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            # 1. Navigate to the project folder on EC2 (Adjust this path if your folder is named differently)
+            cd ~/movieslist || cd ~/moviesmanagement || exit 1
+            
+            # 2. Pull the latest code
+            git pull origin main
+            
+            # 3. Create the backend .env file using the secret from GitHub
+            echo "${{ secrets.BACKEND_ENV }}" > backend/.env
+            
+            # 4. Create the frontend .env file using the secret from GitHub (Optional)
+            echo "${{ secrets.FRONTEND_ENV }}" > frontend/.env
+            
+            # 5. Build and restart Backend
+            cd backend
+            npm install
+            pm2 start ecosystem.config.cjs || pm2 restart ecosystem.config.cjs
+            
+            # 6. Build Frontend
+            cd ../frontend
+            npm install
+            npm run build
