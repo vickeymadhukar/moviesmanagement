@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+/dist
+/build
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# PM2 logs and process files
+*.log
+pids/
+pm2/
+
+# Local uploads
+backend/uploads/
+
+# OS metadata
+.DS_Store
+Thumbs.db
