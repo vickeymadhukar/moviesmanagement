@@ -1,9 +1,9 @@
+import 'dotenv/config';
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import Movie from './models/movie.js';
-
-// Load env vars
-dotenv.config();
 
 const movies = [
   {
