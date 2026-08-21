@@ -38,8 +38,8 @@ jobs:
       - name: Start Backend with PM2
         working-directory: ./backend
         run: |
-          /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 restart movies-list-api --update-env || /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 start server.js --name movies-list-api
-          /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 save
+          /home/ubuntu/.nvm/versions/node/v24.19.0/bin/pm2 restart movies-list-api --update-env || /home/ubuntu/.nvm/versions/node/v24.19.0/bin/pm2 start server.js --name movies-list-api
+          /home/ubuntu/.nvm/versions/node/v24.19.0/bin/pm2 save
 
       # =========================
       # Frontend
