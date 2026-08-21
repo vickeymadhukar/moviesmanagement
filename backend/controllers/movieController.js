@@ -7,6 +7,9 @@ import Movie from "../models/movie.js";
 export const getMovies = async (req, res) => {
   try {
     const { search, genre, sort } = req.query;
+    const page = Number(req.query.page) || 1;
+    const limit = 6;
+    const skip = (page - 1) * limit;
     let query = {};
 
     if (search) {
@@ -26,6 +29,8 @@ export const getMovies = async (req, res) => {
     } else {
       apiQuery = apiQuery.sort({ _id: -1 });
     }
+
+    apiQuery = apiQuery.skip(skip).limit(limit);
 
     const movies = await apiQuery;
     res.status(200).json(movies);
