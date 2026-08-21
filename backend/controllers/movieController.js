@@ -20,7 +20,7 @@ export const getMovies = async (req, res) => {
       query.genre = { $regex: genre, $options: 'i' };
     }
 
-    let apiQuery = Movie.find(query);
+    let apiQuery = Movie.find(query).lean();
 
     if (sort === 'year') {
       apiQuery = apiQuery.sort({ year: -1 });
