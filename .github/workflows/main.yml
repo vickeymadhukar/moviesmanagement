@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy Movies List App on EC2
 
 on:
   push:
@@ -7,38 +7,66 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [24.x]
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            # 1. Navigate to the project folder on EC2 (Adjust this path if your folder is named differently)
-            cd ~/movieslist || cd ~/moviesmanagement || exit 1
-            
-            # 2. Pull the latest code
-            git pull origin main
-            
-            # 3. Create the backend .env file using the secret from GitHub
-            echo "${{ secrets.BACKEND_ENV }}" > backend/.env
-            
-            # 4. Create the frontend .env file using the secret from GitHub (Optional)
-            echo "${{ secrets.FRONTEND_ENV }}" > frontend/.env
-            
-            # 5. Build and restart Backend
-            cd backend
-            npm install
-            pm2 start ecosystem.config.cjs || pm2 restart ecosystem.config.cjs
-            
-            # 6. Build Frontend
-            cd ../frontend
-            npm install
-            npm run build
+          node-version: ${{ matrix.node-version }}
+
+      # =========================
+      # Backend
+      # =========================
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Create Backend .env
+        working-directory: ./backend
+        run: |
+          echo "${{ secrets.BACKEND_ENV }}" > .env
+
+      - name: Start Backend with PM2
+        working-directory: ./backend
+        run: |
+          /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 restart movies-list-api --update-env || /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 start server.js --name movies-list-api
+          /home/ubuntu/.nvm/versions/node/v24.16.0/bin/pm2 save
+
+      # =========================
+      # Frontend
+      # =========================
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Create Frontend .env
+        working-directory: ./frontend
+        run: |
+          echo "${{ secrets.FRONTEND_ENV }}" > .env
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      # =========================
+      # Deploy to Nginx
+      # =========================
+
+      - name: Deploy Frontend to Nginx
+        run: |
+          sudo rm -rf /var/www/html/*
+          sudo cp -r frontend/dist/* /var/www/html/
+
+      - name: Reload Nginx
+        run: |
+          sudo systemctl reload nginx
