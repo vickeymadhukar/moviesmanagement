@@ -30,7 +30,7 @@ export const getMovies = async (req, res) => {
       apiQuery = apiQuery.sort({ _id: -1 });
     }
 
-    apiQuery = apiQuery.skip(skip).limit(limit);
+    apiQuery = apiQuery.skip(skip).limit(limit).lean();
 
     const movies = await apiQuery;
     res.status(200).json(movies);
